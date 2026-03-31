@@ -2,7 +2,7 @@
  * @file node.tpp
  * @author Tommy G
  * @brief Template implementation for Node
- * @date 2024-12-29
+ * @date 2026-03-25
  */
 #pragma once
 

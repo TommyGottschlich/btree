@@ -2,7 +2,7 @@
  * @file node.hpp
  * @author Tommy G
  * @brief Header of a node object
- * @date 2024-12-29
+ * @date 2026-03-25
  *
  */
 
