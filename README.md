@@ -1,13 +1,29 @@
 # btree
 
-Build:
-  1. './support/build.sh'
+**Build:**
+```sh
+./support/build.sh
+```
 
-Clean: 
-  1. './support/clean.sh'
+**Clean:**
+```sh
+./support/clean.sh
+```
 
-Run:
-  1. Run main
-     './build/arm64/btree/btree' or './build/x86/btree/btree'
-  3. Run utests
-     'cd build/arm64/ && ctest' or ' cd build/x86/ && ctest'
+**Run main:**
+```sh
+./build/arm64/btree/btree
+```
+*or*
+```sh
+./build/x86_64/btree/btree
+```
+
+**Run tests:**
+```sh
+ctest --test-dir build/arm64
+```
+*or*
+```sh
+ctest --test-dir build/x86_64
+```

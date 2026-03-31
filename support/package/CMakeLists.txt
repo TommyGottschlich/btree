@@ -16,10 +16,10 @@ set(CMAKE_CXX_EXTENSIONS OFF)  # disables GNU extensions, use pure C++20
 # REPO_ROOT is passed in from the build script via -DREPO_ROOT=
 # Fall back to deriving it from CMAKE_SOURCE_DIR when run directly (e.g. CLion)
 if(NOT REPO_ROOT)
-    cmake_path(GET CMAKE_CURRENT_LIST_DIR PARENT_PATH SUPPORT_PACKAGE_DIR)   # package/
-    cmake_path(GET SUPPORT_PACKAGE_DIR    PARENT_PATH SUPPORT_DIR)           # support/
-    cmake_path(GET SUPPORT_DIR            PARENT_PATH REPO_ROOT)             # repo/
+    cmake_path(GET CMAKE_CURRENT_LIST_DIR PARENT_PATH SUPPORT_DIR)  # support/
+    cmake_path(GET SUPPORT_DIR            PARENT_PATH REPO_ROOT)    # repo/
 endif()
+
 enable_testing()
 
 # Include subdirectories for main project and tests

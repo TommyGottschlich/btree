@@ -10,19 +10,12 @@ echo "Building 2-3tree project..."
 
 # Capture repo root before changing directories
 REPO_ROOT="$(pwd)"
-PACKAGE_BASE="support/package"
+PACKAGE_DIR="support/package"
 
 # Detect architecture
 ARCH=$(uname -m)
-if [ "$ARCH" = "arm64" ]; then
-    PACKAGE_DIR="$PACKAGE_BASE/arm64"
-    BUILD_DIR="build/arm64"
-    echo "Detected architecture: arm64"
-else
-    PACKAGE_DIR="$PACKAGE_BASE/x86"
-    BUILD_DIR="build/x86"
-    echo "Detected architecture: x86 ($ARCH)"
-fi
+BUILD_DIR="build/$ARCH"
+echo "Detected architecture: $ARCH"
 
 # Create build directory if it doesn't exist
 if [ ! -d "$BUILD_DIR" ]; then

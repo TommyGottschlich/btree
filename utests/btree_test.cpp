@@ -611,7 +611,7 @@ BOOST_AUTO_TEST_CASE(random_insert_delete_invariants, * boost::unit_test::label(
 {
     // used a stress test for delete
     Btree<int, ORDER> tree;
-    std::vector<int> values{18, 54, 4, 24};//96, 12, 32, 128, 0, 20, 90, 8, 28, 98, 16, 36, 136};
+    std::vector<int> values{18, 54, 4, 24, 96, 12, 32, 128, 0, 20, 90, 8, 28, 98, 16, 36, 136};
 
     unsigned int seed = std::random_device{}();
     BOOST_TEST_MESSAGE("seed: " << seed);
