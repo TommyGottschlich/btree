@@ -9,16 +9,16 @@
 #define B_TREE_HPP
 
 #include <iostream>
+
 #include "node.hpp"
 
 namespace ds {
 
     // B-tree class template
-    template <typename T, std::size_t ORDER >
-    class Btree {
+    template <typename T, std::size_t ORDER> class Btree {
         static_assert(ORDER >= 3, "B-tree ORDER must be at least 3");
 
-        public:
+    public:
         /// @brief Construct an empty tree
         Btree();
         /// @brief Destroy the tree and release all allocated nodes
@@ -29,8 +29,8 @@ namespace ds {
         Btree& operator=(const Btree&) = delete;
 
         /// Move semantics for ownership transfer
-        Btree(Btree&&)                 = default;
-        Btree& operator=(Btree&&)      = default;
+        Btree(Btree&&)            = default;
+        Btree& operator=(Btree&&) = default;
 
         /// @brief Check whether a value exists in the tree
         /// @param value The value to search for
@@ -71,7 +71,7 @@ namespace ds {
         /// @return The string representation of the tree
         [[nodiscard]] std::string to_string() const;
 
-        private:
+    private:
         /// Root node of the tree
         Node<T, ORDER>* root;
         /// Cached number of keys currently stored in the tree
@@ -80,15 +80,17 @@ namespace ds {
         /// @brief Recursive search function that traverses the tree to find a value
         /// @param node The current node being processed
         /// @param value The value to search for
-        /// @return A pointer to the node containing the value, or nullptr if the value is not found in the subtree rooted at the given node
-        Node<T, ORDER>* search(Node<T,ORDER>* node, const T& value) const;
+        /// @return A pointer to the node containing the value, or nullptr if the value is not found in the subtree
+        /// rooted at the given node
+        Node<T, ORDER>* search(Node<T, ORDER>* node, const T& value) const;
 
         /// Insert Functions
         /// @brief Recursive insert function that handles the logic of inserting a value into the tree
         /// @param node The current node being processed
         /// @param value The value to be inserted
-        /// @return A pair containing the value and a pointer to the node where the value was inserted, or nullptr if the value already exists
-        std::pair<T,Node<T, ORDER>*> recursive_insert(Node<T, ORDER>* node, const T& value);
+        /// @return A pair containing the value and a pointer to the node where the value was inserted, or nullptr if
+        /// the value already exists
+        std::pair<T, Node<T, ORDER>*> recursive_insert(Node<T, ORDER>* node, const T& value);
 
         /// @brief Iterative insert function that handles the logic of inserting a value into the tree
         /// @param node The current node being processed
@@ -96,18 +98,18 @@ namespace ds {
         /// @return True if successfully inserted into the tree, otherwise false
         bool iterative_insert(Node<T, ORDER>* node, const T& value);
 
-        //region Insert Function Helpers
+        // region Insert Function Helpers
         /// @brief Splits an overfull node and promotes the middle key, creating a new root if needed
         /// @param overflow_node The overfull node to split
         /// @return A pair of the promoted key and the new right node created by the split
-        std::pair<T,Node<T, ORDER>*> handle_overflow(Node<T, ORDER>* overflow_node);
+        std::pair<T, Node<T, ORDER>*> handle_overflow(Node<T, ORDER>* overflow_node);
 
         /// @brief Inserts a promoted key and its new right child into a parent node after a split
         /// @param parent The parent node receiving the promoted key
         /// @param promoted_key The key promoted up from the child split
         /// @param new_right_node The new right node created by the child split
         void absorb_promoted(Node<T, ORDER>* parent, const T& promoted_key, Node<T, ORDER>* new_right_node);
-        //endregion
+        // endregion
 
         /// @brief Recursive remove function that handles the logic of removing a value from the tree
         /// @param node The current node being processed
@@ -115,18 +117,20 @@ namespace ds {
         /// @return True if the value was successfully removed, false if the value was not found
         bool remove(Node<T, ORDER>* node, const T& value);
 
-        //region Remove Function helpers
+        // region Remove Function helpers
         /// @brief Merge a child node with its sibling when the child node has too few keys after a removal
         /// @param parent The parent node of the child being merged
         /// @param child_index The index of the child node to be merged
         void merge(Node<T, ORDER>* parent, std::size_t child_index);
 
-        /// @brief Borrow a key from the left sibling of a child node when the child node has too few keys after a removal
+        /// @brief Borrow a key from the left sibling of a child node when the child node has too few keys after a
+        /// removal
         /// @param parent The parent node of the child being borrowed from
         /// @param child_index The index of the child node that needs to borrow a key
         void borrow_from_left(Node<T, ORDER>* parent, std::size_t child_index);
 
-        /// @brief Borrow a key from the right sibling of a child node when the child node has too few keys after a removal
+        /// @brief Borrow a key from the right sibling of a child node when the child node has too few keys after a
+        /// removal
         /// @param parent The parent node of the child being borrowed from
         /// @param child_index The index of the child node that needs to borrow a key
         void borrow_from_right(Node<T, ORDER>* parent, std::size_t child_index);
@@ -140,7 +144,7 @@ namespace ds {
         /// @param parent The parent node of the underfull child
         /// @param child_index The index of the underfull child
         void fix_underflow(Node<T, ORDER>* parent, std::size_t child_index);
-        //endregion
+        // endregion
 
         /// @brief Get the height of the tree starting from a given node
         /// @param root The node from which to calculate the height
@@ -173,11 +177,13 @@ namespace ds {
         /// @return True if the subtree rooted at node is valid, otherwise false
         bool validate_node(Node<T, ORDER>* node, int depth, int& leaf_depth, const T* lower, const T* upper) const;
 
-        //region Test Function helpers
+        // region Test Function helpers
 #ifdef TESTING
-        public:
+    public:
         /// @brief Expose the root for testing purposes
-        Node<T, ORDER>* get_root() { return root; }
+        Node<T, ORDER>* get_root() {
+            return root;
+        }
         /// @brief Test helper that forwards to borrow_from_left
         void test_borrow_from_left(Node<T, ORDER>* parent, std::size_t child_index) {
             borrow_from_left(parent, child_index);
@@ -191,9 +197,9 @@ namespace ds {
             merge(parent, child_index);
         }
 #endif
-        //endregion
+        // endregion
     };
-}
+} // namespace ds
 
 #include "btree.tpp"
 #endif // B_TREE_HPP

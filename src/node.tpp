@@ -12,35 +12,29 @@
 namespace ds {
 
     // Node implementation
-    template <typename T, std::size_t ORDER>
-    Node<T, ORDER>::Node() {
+    template <typename T, std::size_t ORDER> Node<T, ORDER>::Node() {
         keys.fill(T{}); // Initialize keys to default value
         children.fill(nullptr);
     }
 
     template <typename T, std::size_t ORDER>
-    Node<T, ORDER>::Node(T key, Node<T, ORDER>* left_child, Node<T, ORDER>* right_child) :
-        Node() {
-        keys[0] = key;
+    Node<T, ORDER>::Node(T key, Node<T, ORDER>* left_child, Node<T, ORDER>* right_child) : Node() {
+        keys[0]     = key;
         children[0] = left_child;
         children[1] = right_child;
-        key_count = 1;
+        key_count   = 1;
     }
-
 
     template <typename T, std::size_t ORDER>
     Node<T, ORDER>::Node(Node&& other) noexcept
-        : keys{std::move(other.keys)}
-        , children{std::move(other.children)}
-        , key_count{other.key_count} {
-        
-        other.keys.fill(T{}); // reset moved-from keys to default
+        : keys{std::move(other.keys)}, children{std::move(other.children)}, key_count{other.key_count} {
+
+        other.keys.fill(T{});         // reset moved-from keys to default
         other.children.fill(nullptr); // prevent double-free on move
         other.key_count = 0;
     }
 
-    template <typename T, std::size_t ORDER>
-    Node<T, ORDER>& Node<T, ORDER>::operator=(Node&& other) noexcept {
+    template <typename T, std::size_t ORDER> Node<T, ORDER>& Node<T, ORDER>::operator=(Node&& other) noexcept {
         if (this != &other) {
             for (auto* child : children)
                 delete child;
@@ -55,35 +49,30 @@ namespace ds {
         return *this;
     }
 
-    template <typename T, std::size_t ORDER>
-    bool Node<T, ORDER>::is_leaf() const {
-         return children[0] == nullptr;
+    template <typename T, std::size_t ORDER> bool Node<T, ORDER>::is_leaf() const {
+        return children[0] == nullptr;
     }
 
-    template <typename T, std::size_t ORDER>
-    bool Node<T, ORDER>::is_full() const {
-         return key_count == MAX_KEYS;
+    template <typename T, std::size_t ORDER> bool Node<T, ORDER>::is_full() const {
+        return key_count == MAX_KEYS;
     }
 
-    template <typename T, std::size_t ORDER>
-    bool Node<T, ORDER>::is_overflow() const {
-         return key_count > MAX_KEYS;
+    template <typename T, std::size_t ORDER> bool Node<T, ORDER>::is_overflow() const {
+        return key_count > MAX_KEYS;
     }
 
-    template <typename T, std::size_t ORDER>
-    bool Node<T, ORDER>::is_underflow() const {
+    template <typename T, std::size_t ORDER> bool Node<T, ORDER>::is_underflow() const {
         return key_count < ((MAX_KEYS + 1) / 2);
     }
 
-    template <typename T, std::size_t ORDER>
-    bool Node<T, ORDER>::add_key(const T& key) {
+    template <typename T, std::size_t ORDER> bool Node<T, ORDER>::add_key(const T& key) {
         // protect against adding to a full node or non-leaf node
         if (is_overflow() || !is_leaf()) {
             return false;
         }
 
         auto end = keys.begin() + key_count;
-        if(std::find(keys.begin(), end, key) != end) {
+        if (std::find(keys.begin(), end, key) != end) {
             return false; // no duplicates
         }
 
@@ -91,7 +80,7 @@ namespace ds {
         for (std::size_t i = key_count; i > 0; --i) {
 
             if (key < keys[i - 1]) {
-                keys[i] = keys[i - 1];
+                keys[i]    = keys[i - 1];
                 insert_pos = i - 1;
             } else {
                 break; // found the correct position for insertion
@@ -102,15 +91,16 @@ namespace ds {
         return true;
     }
 
-    template <typename T, std::size_t ORDER>
-    bool Node<T, ORDER>::remove_key(const T& key) {
+    template <typename T, std::size_t ORDER> bool Node<T, ORDER>::remove_key(const T& key) {
 
         std::size_t i = 0;
 
         // find the key position
-        while (i < key_count && keys[i] != key) ++i;
+        while (i < key_count && keys[i] != key)
+            ++i;
 
-        if (i == key_count) return false;
+        if (i == key_count)
+            return false;
 
         // shift everything left
         std::copy(keys.begin() + i + 1, keys.begin() + key_count, keys.begin() + i);
@@ -120,10 +110,8 @@ namespace ds {
         return true;
     }
 
-
-    template <typename T, std::size_t ORDER>
-    std::pair<T, Node<T, ORDER>*> Node<T, ORDER>::split() {
-        auto* right_node = new Node<T, ORDER>();
+    template <typename T, std::size_t ORDER> std::pair<T, Node<T, ORDER>*> Node<T, ORDER>::split() {
+        auto* right_node   = new Node<T, ORDER>();
         std::size_t middle = ORDER / 2;
 
         // save off promoted
@@ -134,7 +122,7 @@ namespace ds {
         // copy left node keys[mid+1..MAX_KEYS+1] to right node keys[0..]
         // e.g       ORDER 5
         //           idx  0   1    2    3  (4)   "(4)" is overflow key state
-        //              [ 1 , 2 , {3} , 4 , 5 ] 
+        //              [ 1 , 2 , {3} , 4 , 5 ]
         //                         ^-- promoted key index (middle=2)
         // L node       [ 1 , 2 ,  0  , 0 , 0 ]   key count = 2,  keeps keys[0..mid]
         // R node       [ 4 , 5 ,  0  , 0 , 0 ]   key count = 2,  gets  keys[mid+1..MAX_KEYS+1]
@@ -143,7 +131,7 @@ namespace ds {
 
         // Reassign key count
         right_node->key_count = ORDER - (middle + 1);
-        key_count = middle;
+        key_count             = middle;
 
         // Reassign children
         // When splitting, a node with ORDER keys has MAX_CHILDREN+1 children
@@ -162,10 +150,9 @@ namespace ds {
         return {promoted_key, right_node};
     }
 
-    template <typename T, std::size_t ORDER>
-    std::size_t Node<T, ORDER>::child_index(const T& value) const {
+    template <typename T, std::size_t ORDER> std::size_t Node<T, ORDER>::child_index(const T& value) const {
         std::size_t index = key_count;
-        for(std::size_t i = 0; i < key_count; ++i){
+        for (std::size_t i = 0; i < key_count; ++i) {
             if (value < keys[i]) {
                 index = i;
                 break;
@@ -173,12 +160,11 @@ namespace ds {
         }
         return index;
     }
-    
-    template <typename T, std::size_t ORDER>
-    std::size_t Node<T, ORDER>::key_index(const T& value) const {
+
+    template <typename T, std::size_t ORDER> std::size_t Node<T, ORDER>::key_index(const T& value) const {
         auto key_idx = key_count;
-        for(std::size_t i = 0; i < key_count; ++i){
-            if (value == keys[i] ){
+        for (std::size_t i = 0; i < key_count; ++i) {
+            if (value == keys[i]) {
                 key_idx = i;
                 break;
             }
@@ -186,20 +172,22 @@ namespace ds {
         return key_idx;
     }
 
-    template <typename T, std::size_t ORDER>
-    void Node<T, ORDER>::print() const {
+    template <typename T, std::size_t ORDER> void Node<T, ORDER>::print() const {
         std::cout << "keys: [";
         for (std::size_t i = 0; i < key_count; ++i) {
-            if (i > 0) std::cout << ", ";
+            if (i > 0)
+                std::cout << ", ";
             std::cout << keys[i];
         }
         std::cout << "]  children: [";
         for (std::size_t i = 0; i <= key_count; ++i) {
-            if (i > 0) std::cout << ", ";
+            if (i > 0)
+                std::cout << ", ";
             if (children[i]) {
                 std::cout << "[" << i << "]=";
                 for (std::size_t j = 0; j < children[i]->key_count; ++j) {
-                    if (j > 0) std::cout << ", ";
+                    if (j > 0)
+                        std::cout << ", ";
                     std::cout << children[i]->keys[j];
                 }
             } else {

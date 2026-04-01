@@ -2,7 +2,7 @@
  * @file node_test.cpp
  * @brief Unit tests for Node class using Boost Test Framework
  */
-#include "../src/node.hpp"
+#include "node.hpp"
 using namespace ds;
 
 #define BOOST_TEST_MODULE utst_node
@@ -12,8 +12,7 @@ using namespace ds;
 BOOST_AUTO_TEST_SUITE(node_suite)
 
 // Example test case - replace with your actual tests
-BOOST_AUTO_TEST_CASE(default_node_construction, * boost::unit_test::label("node"))
-{
+BOOST_AUTO_TEST_CASE(default_node_construction, *boost::unit_test::label("node")) {
     BOOST_TEST_CONTEXT("order 3") {
         constexpr std::size_t ORDER = 3;
         const Node<int, ORDER> node;
@@ -22,7 +21,7 @@ BOOST_AUTO_TEST_CASE(default_node_construction, * boost::unit_test::label("node"
         BOOST_CHECK(!node.is_full());
 
         BOOST_CHECK_EQUAL(node.key_count, 0);
-        BOOST_CHECK_EQUAL(node.MAX_KEYS, ORDER -1);
+        BOOST_CHECK_EQUAL(node.MAX_KEYS, ORDER - 1);
         BOOST_CHECK_EQUAL(node.MAX_CHILDREN, ORDER);
         // +1 for overflow states
         BOOST_CHECK_EQUAL(node.keys.size(), node.MAX_KEYS + 1);
@@ -37,7 +36,7 @@ BOOST_AUTO_TEST_CASE(default_node_construction, * boost::unit_test::label("node"
         BOOST_CHECK(!node.is_full());
 
         BOOST_CHECK_EQUAL(node.key_count, 0);
-        BOOST_CHECK_EQUAL(node.MAX_KEYS, ORDER -1);
+        BOOST_CHECK_EQUAL(node.MAX_KEYS, ORDER - 1);
         BOOST_CHECK_EQUAL(node.MAX_CHILDREN, ORDER);
         // +1 for overflow states
         BOOST_CHECK_EQUAL(node.keys.size(), node.MAX_KEYS + 1);
@@ -52,7 +51,7 @@ BOOST_AUTO_TEST_CASE(default_node_construction, * boost::unit_test::label("node"
         BOOST_CHECK(!node.is_full());
 
         BOOST_CHECK_EQUAL(node.key_count, 0);
-        BOOST_CHECK_EQUAL(node.MAX_KEYS, ORDER -1);
+        BOOST_CHECK_EQUAL(node.MAX_KEYS, ORDER - 1);
         BOOST_CHECK_EQUAL(node.MAX_CHILDREN, ORDER);
         // +1 for overflow states
         BOOST_CHECK_EQUAL(node.keys.size(), node.MAX_KEYS + 1);
@@ -60,7 +59,7 @@ BOOST_AUTO_TEST_CASE(default_node_construction, * boost::unit_test::label("node"
     }
 }
 
-BOOST_AUTO_TEST_CASE(node_construction, * boost::unit_test::label("node")) {
+BOOST_AUTO_TEST_CASE(node_construction, *boost::unit_test::label("node")) {
 
     BOOST_TEST_CONTEXT("order 3") {
         constexpr std::size_t ORDER = 3;
@@ -75,7 +74,7 @@ BOOST_AUTO_TEST_CASE(node_construction, * boost::unit_test::label("node")) {
         BOOST_CHECK(!root.is_full());
 
         BOOST_CHECK_EQUAL(root.key_count, 1);
-        BOOST_CHECK_EQUAL(root.MAX_KEYS, ORDER -1);
+        BOOST_CHECK_EQUAL(root.MAX_KEYS, ORDER - 1);
         BOOST_CHECK_EQUAL(root.MAX_CHILDREN, ORDER);
         // +1 for overflow states
         BOOST_CHECK_EQUAL(root.keys.size(), root.MAX_KEYS + 1);
@@ -96,25 +95,24 @@ BOOST_AUTO_TEST_CASE(node_construction, * boost::unit_test::label("node")) {
         BOOST_CHECK(!root.is_full());
 
         BOOST_CHECK_EQUAL(root.key_count, 1);
-        BOOST_CHECK_EQUAL(root.MAX_KEYS, ORDER -1);
+        BOOST_CHECK_EQUAL(root.MAX_KEYS, ORDER - 1);
         BOOST_CHECK_EQUAL(root.MAX_CHILDREN, ORDER);
         // +1 for overflow states
         BOOST_CHECK_EQUAL(root.keys.size(), root.MAX_KEYS + 1);
         BOOST_CHECK_EQUAL(root.children.size(), root.MAX_CHILDREN + 1);
     }
-
 }
 
-BOOST_AUTO_TEST_CASE(move_node, * boost::unit_test::label("node")) {
+BOOST_AUTO_TEST_CASE(move_node, *boost::unit_test::label("node")) {
     constexpr std::size_t ORDER = 3;
 
-    auto* left_child = new Node<int, ORDER>();
+    auto* left_child  = new Node<int, ORDER>();
     auto* right_child = new Node<int, ORDER>();
 
     Node<int, ORDER> source;
-    source.keys[0] = 5;
-    source.keys[1] = 15;
-    source.key_count = 2;
+    source.keys[0]     = 5;
+    source.keys[1]     = 15;
+    source.key_count   = 2;
     source.children[0] = left_child;
     source.children[1] = right_child;
 
@@ -132,12 +130,12 @@ BOOST_AUTO_TEST_CASE(move_node, * boost::unit_test::label("node")) {
     BOOST_CHECK(source.children[0] == nullptr);
     BOOST_CHECK(source.children[1] == nullptr);
 
-    auto* new_left_child = new Node<int, ORDER>();
+    auto* new_left_child  = new Node<int, ORDER>();
     auto* new_right_child = new Node<int, ORDER>();
 
     Node<int, ORDER> target;
-    target.keys[0] = 99;
-    target.key_count = 1;
+    target.keys[0]     = 99;
+    target.key_count   = 1;
     target.children[0] = new_left_child;
     target.children[1] = new_right_child;
 
@@ -159,8 +157,7 @@ BOOST_AUTO_TEST_CASE(move_node, * boost::unit_test::label("node")) {
     delete target.children[1];
 }
 
-BOOST_AUTO_TEST_CASE(add_key, * boost::unit_test::label("node"))
-{
+BOOST_AUTO_TEST_CASE(add_key, *boost::unit_test::label("node")) {
     BOOST_TEST_CONTEXT("order 3") {
         constexpr std::size_t ORDER = 3;
         Node<int, ORDER> node;
@@ -207,15 +204,13 @@ BOOST_AUTO_TEST_CASE(add_key, * boost::unit_test::label("node"))
     }
 }
 
-BOOST_AUTO_TEST_CASE(node_fullness, * boost::unit_test::label("node"))
-{
+BOOST_AUTO_TEST_CASE(node_fullness, *boost::unit_test::label("node")) {
     Node<int, 5> node;
     node.key_count = Node<int, 5>::MAX_KEYS; // Simulate a full node
     BOOST_CHECK(node.is_full());
 }
 
-BOOST_AUTO_TEST_CASE(is_leaf, * boost::unit_test::label("node"))
-{
+BOOST_AUTO_TEST_CASE(is_leaf, *boost::unit_test::label("node")) {
     Node<int, 3> node;
     BOOST_CHECK(node.is_leaf());
 
@@ -227,8 +222,7 @@ BOOST_AUTO_TEST_CASE(is_leaf, * boost::unit_test::label("node"))
     node.children[0] = nullptr; // Reset pointer after deletion
 }
 
-BOOST_AUTO_TEST_CASE(node_size_constants, * boost::unit_test::label("node"))
-{
+BOOST_AUTO_TEST_CASE(node_size_constants, *boost::unit_test::label("node")) {
     Node<int, 4> node;
     BOOST_CHECK(node.MAX_KEYS == 3);
     BOOST_CHECK(node.MAX_CHILDREN == 4);
@@ -242,8 +236,7 @@ BOOST_AUTO_TEST_CASE(node_size_constants, * boost::unit_test::label("node"))
     BOOST_CHECK(large_node.MAX_CHILDREN == 10);
 }
 
-BOOST_AUTO_TEST_CASE(node_empty_state, * boost::unit_test::label("node"))
-{
+BOOST_AUTO_TEST_CASE(node_empty_state, *boost::unit_test::label("node")) {
     Node<int, 3> node;
     BOOST_CHECK(node.key_count == 0);
     for (std::size_t i = 0; i < ds::Node<int, 3>::MAX_KEYS; ++i) {
@@ -254,11 +247,10 @@ BOOST_AUTO_TEST_CASE(node_empty_state, * boost::unit_test::label("node"))
     }
 }
 
-BOOST_AUTO_TEST_CASE(node_string_type, * boost::unit_test::label("node"))
-{
+BOOST_AUTO_TEST_CASE(node_string_type, *boost::unit_test::label("node")) {
     Node<std::string, 3> node;
-    node.keys[0] = "Hello";
-    node.keys[1] = "World";
+    node.keys[0]   = "Hello";
+    node.keys[1]   = "World";
     node.key_count = 2;
 
     BOOST_CHECK(node.keys[0] == "Hello");
@@ -266,20 +258,18 @@ BOOST_AUTO_TEST_CASE(node_string_type, * boost::unit_test::label("node"))
     BOOST_CHECK(node.is_full());
 }
 
-BOOST_AUTO_TEST_CASE(node_overflow_state, * boost::unit_test::label("node"))
-{
+BOOST_AUTO_TEST_CASE(node_overflow_state, *boost::unit_test::label("node")) {
     Node<int, 3> node;
-    node.keys[0] = 10;
-    node.keys[1] = 20;
-    node.keys[2] = 30; // This key exceeds the MAX_KEYS for a node of order 3
-    node.key_count = 3; // Simulate an overflow state
+    node.keys[0]   = 10;
+    node.keys[1]   = 20;
+    node.keys[2]   = 30; // This key exceeds the MAX_KEYS for a node of order 3
+    node.key_count = 3;  // Simulate an overflow state
 
     BOOST_CHECK(node.is_overflow());
 }
 
-BOOST_AUTO_TEST_CASE(node_underflow_state, * boost::unit_test::label("node"))
-{
-    BOOST_TEST_CONTEXT("order 3"){
+BOOST_AUTO_TEST_CASE(node_underflow_state, *boost::unit_test::label("node")) {
+    BOOST_TEST_CONTEXT("order 3") {
         constexpr std::size_t ORDER = 3;
         Node<int, ORDER> node;
         BOOST_CHECK(node.is_underflow());
@@ -315,14 +305,14 @@ BOOST_AUTO_TEST_CASE(node_underflow_state, * boost::unit_test::label("node"))
     }
 }
 
-BOOST_AUTO_TEST_CASE(node_add_key_spurious_overflow_slot, * boost::unit_test::label("node")) {
+BOOST_AUTO_TEST_CASE(node_add_key_spurious_overflow_slot, *boost::unit_test::label("node")) {
     // keys=[3,5], add_key(3) fails but shifts 5 into the overflow slot keys[2]
     // before detecting the duplicate at keys[0]
     Node<int, 3> node;
     node.add_key(3);
-    node.add_key(5);                  // keys=[3,5], key_count=2
+    node.add_key(5); // keys=[3,5], key_count=2
 
-    BOOST_CHECK(!node.add_key(3));    // duplicate — should fail
+    BOOST_CHECK(!node.add_key(3)); // duplicate — should fail
     BOOST_CHECK_EQUAL(node.key_count, 2u);
     BOOST_CHECK(!node.is_overflow()); // overflow slot must not be counted
 
@@ -330,13 +320,13 @@ BOOST_AUTO_TEST_CASE(node_add_key_spurious_overflow_slot, * boost::unit_test::la
     BOOST_CHECK_EQUAL(node.keys[2], 0); // spurious value lives here
 }
 
-BOOST_AUTO_TEST_CASE(node_split_no_children, * boost::unit_test::label("node")) {
+BOOST_AUTO_TEST_CASE(node_split_no_children, *boost::unit_test::label("node")) {
     // ORDER=5: mid=2, keys [1,2,3,4,5] -> promoted=3, left=[1,2], right=[4,5]
     auto* left = new Node<int, 5>();
-    left->add_key(1); 
-    left->add_key(2); 
+    left->add_key(1);
+    left->add_key(2);
     left->add_key(3);
-    left->add_key(4); 
+    left->add_key(4);
     left->add_key(5);
 
     auto [promoted, right] = left->split();
@@ -365,7 +355,7 @@ BOOST_AUTO_TEST_CASE(node_split_no_children, * boost::unit_test::label("node")) 
     delete right;
 }
 
-BOOST_AUTO_TEST_CASE(node_split_children, * boost::unit_test::label("node")) {
+BOOST_AUTO_TEST_CASE(node_split_children, *boost::unit_test::label("node")) {
     // Build an ORDER=5 internal node in overflow state (5 keys, 6 children)
     // keys:     [ 1, 2, 3, 4, 5 ]
     // children: [ c0, c1, c2, c3, c4, c5 ]
@@ -374,23 +364,23 @@ BOOST_AUTO_TEST_CASE(node_split_children, * boost::unit_test::label("node")) {
     // right gets:  keys[3..4], children[3..5]
 
     auto* left = new Node<int, 5>();
-    left->add_key(1); 
-    left->add_key(2); 
+    left->add_key(1);
+    left->add_key(2);
     left->add_key(3);
-    left->add_key(4); 
+    left->add_key(4);
     left->add_key(5);
 
-    auto* c0 = new Node<int, 5>();
-    auto* c1 = new Node<int, 5>();
-    auto* c2 = new Node<int, 5>();
-    auto* c3 = new Node<int, 5>();
-    auto* c4 = new Node<int, 5>();
-    auto* c5 = new Node<int, 5>();
-    left->children[0] = c0; 
-    left->children[1] = c1; 
+    auto* c0          = new Node<int, 5>();
+    auto* c1          = new Node<int, 5>();
+    auto* c2          = new Node<int, 5>();
+    auto* c3          = new Node<int, 5>();
+    auto* c4          = new Node<int, 5>();
+    auto* c5          = new Node<int, 5>();
+    left->children[0] = c0;
+    left->children[1] = c1;
     left->children[2] = c2;
-    left->children[3] = c3; 
-    left->children[4] = c4; 
+    left->children[3] = c3;
+    left->children[4] = c4;
     left->children[5] = c5;
 
     auto [promoted, right] = left->split();
@@ -435,17 +425,16 @@ BOOST_AUTO_TEST_CASE(node_split_children, * boost::unit_test::label("node")) {
     delete right;
 }
 
+BOOST_AUTO_TEST_CASE(remove_key, *boost::unit_test::label("node")) {
 
-BOOST_AUTO_TEST_CASE(remove_key, * boost::unit_test::label("node")) {
-   
     auto* node = new Node<int, 6>();
-    node->add_key(1); 
-    node->add_key(2); 
+    node->add_key(1);
+    node->add_key(2);
     node->add_key(3);
-    node->add_key(4); 
+    node->add_key(4);
     node->add_key(5);
     node->add_key(7);
-    
+
     // remove value that ddoes not exist
     BOOST_CHECK(!node->remove_key(6));
 
@@ -468,19 +457,16 @@ BOOST_AUTO_TEST_CASE(remove_key, * boost::unit_test::label("node")) {
     BOOST_CHECK_EQUAL(node->keys[2], 5);
     BOOST_CHECK_EQUAL(node->keys[3], 7);
 
-
-    //remove last
+    // remove last
     BOOST_CHECK(node->remove_key(7));
 
     BOOST_CHECK_EQUAL(node->key_count, 3);
     BOOST_CHECK_EQUAL(node->keys[0], 2);
     BOOST_CHECK_EQUAL(node->keys[1], 3);
     BOOST_CHECK_EQUAL(node->keys[2], 5);
-
 }
 
-BOOST_AUTO_TEST_CASE(child_index, * boost::unit_test::label("node"))
-{
+BOOST_AUTO_TEST_CASE(child_index, *boost::unit_test::label("node")) {
     constexpr std::size_t ORDER = 5;
     Node<int, ORDER> node;
 
@@ -495,8 +481,7 @@ BOOST_AUTO_TEST_CASE(child_index, * boost::unit_test::label("node"))
     BOOST_CHECK_EQUAL(node.child_index(35), 3u);
 }
 
-BOOST_AUTO_TEST_CASE(key_index, * boost::unit_test::label("node"))
-{
+BOOST_AUTO_TEST_CASE(key_index, *boost::unit_test::label("node")) {
     constexpr std::size_t ORDER = 5;
     Node<int, ORDER> node;
 

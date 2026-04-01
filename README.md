@@ -29,11 +29,11 @@ The `ORDER` template parameter must be >= 3. A `static_assert` enforces this at 
 ## Build
 
 ```sh
-./support/build.sh
+./support/make_build
 ```
 
 ```sh
-./support/clean.sh
+./support/make_clean
 ```
 
 **Run:**

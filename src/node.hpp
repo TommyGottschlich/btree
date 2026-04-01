@@ -14,8 +14,7 @@
 namespace ds {
 
     // Forward declaration of Node class template
-    template <typename T, std::size_t ORDER>
-    struct Node {
+    template <typename T, std::size_t ORDER> struct Node {
         static_assert(ORDER >= 3, "B-tree ORDER must be at least 3");
 
         // Constants for maximum keys and children based on the order of the tree
@@ -23,7 +22,7 @@ namespace ds {
         static constexpr std::size_t MAX_CHILDREN = ORDER;
 
         // Data members
-        std::array<T, MAX_KEYS + 1> keys{}; // +1 to temporarily hold the new key during splits
+        std::array<T, MAX_KEYS + 1> keys{};             // +1 to temporarily hold the new key during splits
         std::array<Node*, MAX_CHILDREN + 1> children{}; // +1 to temporarily hold the new child during splits
         std::size_t key_count{0};
 
@@ -50,7 +49,7 @@ namespace ds {
         Node& operator=(Node&& other) noexcept;
 
         // Utility functions
-        
+
         /// @brief Check whether the node has no children
         /// @return True if the node is a leaf, otherwise false
         bool is_leaf() const;
@@ -77,7 +76,6 @@ namespace ds {
         /// @return True if the key was removed, false if it was not found
         bool remove_key(const T& key);
 
-
         /// @brief Determine which child subtree should contain a given value
         /// @param value The value to locate
         /// @return The index of the child subtree where the value belongs
@@ -96,9 +94,9 @@ namespace ds {
 
         /// @brief Print the node's keys and child addresses
         void print() const;
-
     };
-}
+} // namespace ds
+
 // Include the implementation of the Node template class
 #include "node.tpp"
 
