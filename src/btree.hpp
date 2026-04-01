@@ -13,7 +13,7 @@
 
 namespace ds {
 
-    // Node in a B-tree
+    // B-tree class template
     template <typename T, std::size_t ORDER >
     class Btree {
         static_assert(ORDER >= 3, "B-tree ORDER must be at least 3");
@@ -37,13 +37,13 @@ namespace ds {
         /// @return True if the value is found, otherwise false
         bool contains(const T& value) const;
 
-        /// @brief Insert a value into the tree, maintaining the properties of the 2-3 tree
+        /// @brief Insert a value into the tree, maintaining the properties of a B tree
         /// @param value The value to be inserted
         /// @param recursive If true, use the recursive insertion path; otherwise use the iterative path
         /// @return True if the value was successfully inserted, false if the value already exists
         bool insert(const T& value, bool recursive = false);
 
-        /// @brief Remove a value from the tree, maintaining the properties of the 2-3 tree
+        /// @brief Remove a value from the tree, maintaining the properties of a B tree
         /// @param value The value to be removed
         /// @return True if the value was successfully removed, false if the value was not found
         bool remove(const T& value);
@@ -55,17 +55,17 @@ namespace ds {
 
         /// @brief Get the height of the tree
         /// @return The height of the tree
-        int height() const;
+        [[nodiscard]] int height() const;
 
         /// @brief Get the total number of keys in the tree
         /// @return The total number of keys in the tree
-        int size() const;
+        [[nodiscard]] int size() const;
 
         /// @brief Clear the tree, deallocating all nodes and resetting the tree to an empty state
         void clear(bool recursive = false);
 
         /// @brief validate the tree state
-        bool validate() const;
+        [[nodiscard]] bool validate() const;
 
         /// @brief Provide a string representation of the tree
         /// @return The string representation of the tree
@@ -142,7 +142,6 @@ namespace ds {
         void fix_underflow(Node<T, ORDER>* parent, std::size_t child_index);
         //endregion
 
-        /// Utility function to get the height, size, clears and print the tree
         /// @brief Get the height of the tree starting from a given node
         /// @param root The node from which to calculate the height
         /// @return The height of the tree
@@ -153,10 +152,6 @@ namespace ds {
         /// @return The total number of keys in the tree
         int size(Node<T, ORDER>* root) const;
 
-        /// @brief Print the tree structure starting from a given node
-        /// @param node The node from which to start printing the tree
-        void print(Node<T, ORDER>* node) const;
-
         /// @brief Clear the tree starting from a given node, deallocating all nodes in the process
         /// @param node The node from which to start clearing the tree
         void clear(Node<T, ORDER>* node);
@@ -164,6 +159,10 @@ namespace ds {
         /// @brief Clear the tree recursively starting from a given node, deallocating all nodes in the process
         /// @param node The node from which to start clearing the tree
         void recursive_clear(Node<T, ORDER>* node);
+
+        /// @brief Print the tree structure starting from a given node
+        /// @param node The node from which to start printing the tree
+        void print(Node<T, ORDER>* node) const;
 
         /// @brief Validate that the tree satisfies its structural invariants
         /// @param node The node to validate

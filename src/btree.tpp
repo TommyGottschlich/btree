@@ -24,6 +24,11 @@ namespace ds {
     }
 
     template <typename T, std::size_t ORDER>
+    bool Btree<T, ORDER>::contains(const T& value) const {
+        return search(root, value) != nullptr;
+    }
+
+    template <typename T, std::size_t ORDER>
     bool Btree<T, ORDER>::insert(const T& value, bool recursive) {
         auto old_size = current_size;
 
@@ -50,8 +55,8 @@ namespace ds {
     }
 
     template <typename T, std::size_t ORDER>
-    bool Btree<T, ORDER>::contains(const T& value) const {
-        return search(root, value) != nullptr;
+    void Btree<T, ORDER>::print() const {
+        print(root);
     }
 
     template <typename T, std::size_t ORDER>
@@ -65,7 +70,7 @@ namespace ds {
     }
 
     template <typename T, std::size_t ORDER>
-    void Btree<T, ORDER>::clear(bool recursive) {
+    void Btree<T, ORDER>::clear(const bool recursive) {
         if (recursive) recursive_clear(root);
         else clear(root);
         root = nullptr;
@@ -79,8 +84,36 @@ namespace ds {
     }
 
     template <typename T, std::size_t ORDER>
-    void Btree<T, ORDER>::print() const {
-        print(root);
+    std::string Btree<T, ORDER>::to_string() const {
+        std::string result;
+        if (!root) return result;
+
+        std::queue<Node<T, ORDER>*> current_level, next_level;
+        current_level.push(root);
+
+        while (!current_level.empty()) {
+            while (!current_level.empty()) {
+                auto* node = current_level.front();
+                current_level.pop();
+
+                // print this node's keys
+                result += "[";
+                for (std::size_t i = 0; i < node->key_count; ++i) {
+                    if (i > 0) result += "|";
+                    result += std::to_string(node->keys[i]);
+                }
+                result += "] ";
+
+                // enqueue children for next level
+                for (std::size_t i = 0; i <= node->key_count; ++i) {
+                    if (node->children[i])
+                        next_level.push(node->children[i]);
+                }
+            }
+            result += "\n";
+            std::swap(current_level, next_level);
+        }
+        return result;
     }
 
     //region Private helper functions
@@ -91,7 +124,7 @@ namespace ds {
             return nullptr;
         }
 
-        // if node is leaf, no children to traverse, check if value is in keys
+        // if node is leaf (no children), check if value is in keys
         if (node->is_leaf()) {
             for(std::size_t i = 0; i < node->key_count; ++i) {
                 if(node->keys[i] == value) {
@@ -101,8 +134,8 @@ namespace ds {
             return nullptr;
         }
 
-        // if node is not leaf, traverse children based on key comparisons
-        // search left to right for the correct child to traverse
+        // if node is not leaf (has children), check children
+        // left to right for the correct child to traverse
         for (std::size_t i = 0; i < node->key_count; ++i) {
             if (value == node->keys[i]) {
                 return node;
@@ -117,46 +150,6 @@ namespace ds {
     }
 
     template <typename T, std::size_t ORDER>
-    std::pair<T,Node<T, ORDER>*> Btree<T, ORDER>::handle_overflow(Node<T, ORDER>* node) {
-        // node is now overfull, split it and promote the middle key
-        auto [promoted_key, new_right_node] = node->split();
-        
-        // if root split, we need to create a new root
-        if (node == root) {
-            root = new Node<T, ORDER>(promoted_key, node, new_right_node);
-            return {promoted_key, root};
-        }
-
-        // return the promoted key and new right node to be inserted into the parent
-        return {promoted_key, new_right_node}; 
-    }
-
-    template <typename T, std::size_t ORDER>
-    void Btree<T, ORDER>::absorb_promoted(Node<T, ORDER>* parent, const T& promoted_key, Node<T, ORDER>* new_right_node) {
-       
-        // find insert position for promoted key
-        auto insert_pos = parent->key_count;
-        for (std::size_t i = parent->key_count; i > 0; --i) {
-            if (promoted_key < parent->keys[i - 1]){
-                insert_pos = i - 1;
-            }
-        }
-
-        // shift keys/children right from insert_pos to make room
-        // keys:     [ k0, k1, 0  ] -> [ k0, k0, k1 ]
-        // children: [ c0, c1, c2, nil ] -> [ c0, c1, c1, c2 ]
-        std::copy_backward(parent->keys.begin() + insert_pos, parent->keys.end() - 1, parent->keys.end());
-        std::copy_backward(parent->children.begin() + insert_pos + 1, parent->children.end() - 1, parent->children.end());
-
-        // place promoted key and its new right child
-        // keys:     [ promoted, k0, k1 ]
-        // children: [ c0, new_right, c1, c2 ]
-        parent->keys[insert_pos] = promoted_key;
-        parent->children[insert_pos + 1] = new_right_node;
-        ++parent->key_count;
-    }
-
-    template <typename T, std::size_t ORDER>
     std::pair<T,Node<T, ORDER>*> Btree<T, ORDER>::recursive_insert(Node<T, ORDER>* node, const T& value) {
         // case 0: if root is null, create a root
          if (!node) {
@@ -164,7 +157,7 @@ namespace ds {
             current_size++;
             return {value, root};
         }
-        
+
         // case 1: if node is a leaf
         if (node->is_leaf()) {
             if (node->add_key(value))
@@ -174,8 +167,8 @@ namespace ds {
             // find child node index to insert down into
             auto index = node->child_index(value);
             auto [promoted_key, new_node] = recursive_insert(node->children[index], value);
-        
-            if (new_node) 
+
+            if (new_node)
                 absorb_promoted(node, promoted_key, new_node);
         }
 
@@ -224,6 +217,45 @@ namespace ds {
         return true;
     }
 
+    template <typename T, std::size_t ORDER>
+    std::pair<T,Node<T, ORDER>*> Btree<T, ORDER>::handle_overflow(Node<T, ORDER>* node) {
+        // node is now overfull, split it and promote the middle key
+        auto [promoted_key, new_right_node] = node->split();
+        
+        // if root split, we need to create a new root
+        if (node == root) {
+            root = new Node<T, ORDER>(promoted_key, node, new_right_node);
+            return {promoted_key, root};
+        }
+
+        // return the promoted key and new right node to be inserted into the parent
+        return {promoted_key, new_right_node}; 
+    }
+
+    template <typename T, std::size_t ORDER>
+    void Btree<T, ORDER>::absorb_promoted(Node<T, ORDER>* parent, const T& promoted_key, Node<T, ORDER>* new_right_node) {
+       
+        // find insert position for promoted key
+        auto insert_pos = parent->key_count;
+        for (std::size_t i = parent->key_count; i > 0; --i) {
+            if (promoted_key < parent->keys[i - 1]){
+                insert_pos = i - 1;
+            }
+        }
+
+        // shift keys right of insert_pos & children right of insert_pos + 1 to make room
+        // keys:     [ k0, k1, 0  ] -> [ k0, k0, k1 ]
+        // children: [ c0, c1, c2, nil ] -> [ c0, c1, c1, c2 ]
+        std::copy_backward(parent->keys.begin() + insert_pos, parent->keys.end() - 1, parent->keys.end());
+        std::copy_backward(parent->children.begin() + insert_pos + 1, parent->children.end() - 1, parent->children.end());
+
+        // place promoted key and its new right child
+        // keys:     [ promoted, k0, k1 ]
+        // children: [ c0, new_right, c1, c2 ]
+        parent->keys[insert_pos] = promoted_key;
+        parent->children[insert_pos + 1] = new_right_node;
+        ++parent->key_count;
+    }
 
     template <typename T, std::size_t ORDER>
     bool Btree<T, ORDER>::remove(Node<T, ORDER>* node, const T& value) {
@@ -239,7 +271,7 @@ namespace ds {
 
         // case 2: node has value and is not a leaf
         if (key_idx < node->key_count) {
-            // now find the very next greatest value in the tree
+            // find the very next greatest value in the tree
             child_idx = key_idx + 1;
             auto right_child = node->children[child_idx];
             T successor = inorder_successor(right_child);
@@ -282,7 +314,7 @@ namespace ds {
         auto* merge_node = parent->children[child_index];
         auto* delete_node = parent->children[child_index + 1];
 
-        // step 1: pull in parent key into merge node
+        // step 1: set merge_node's next key to the parent's separator key
         merge_node->keys[merge_node->key_count] = parent->keys[child_index];
         ++merge_node->key_count;
 
@@ -297,12 +329,13 @@ namespace ds {
             parent->children[i] = parent->children[i + 1];
         parent->children[parent->key_count + 1] = nullptr;
      
-        // step 4: copy delete nodes children into merge node
+        // step 4: if delete_node has children
         if(!delete_node->is_leaf()) {
+            // copy delete_node's children into merge_node
             std::copy(delete_node->children.begin(), delete_node->children.begin() + delete_node->key_count + 1, merge_node->children.begin() + merge_node->key_count); // assume merge node has orphan, (merge_node->key_count)
         }
 
-        // step 5: copy delete nodes keys into merge node
+        // step 5: copy delete_node's keys into merge_node's keys
         std::copy(delete_node->keys.begin(), delete_node->keys.begin() + delete_node->key_count, merge_node->keys.begin()+ merge_node->key_count);
         // compute new key count
         merge_node->key_count += delete_node->key_count;
@@ -328,36 +361,35 @@ namespace ds {
         // [1|2|_] [4|_]  [6]  [9|10]
         //   c0     c1    c2    c3    child indexes
         //endregion
-       
-        //implement key rotation from left sibling
-        auto* underfull_child = parent->children[child_index];
-        auto* left_sibling = parent->children[child_index -1];
 
-        // step 1: underfull_child shift keys to the right
+        //implement key rotation from left child
+        auto* underfull_child = parent->children[child_index];
+        auto* left_child = parent->children[child_index -1];
+
+        // step 1: shift underfull_child keys to the right
         for (std::size_t i = underfull_child->key_count; i > 0; --i)
             underfull_child->keys[i] = underfull_child->keys[i - 1];
 
-        // step 2: put seperator key into  underfull_child
+        // step 2: set underfull_child's key to parent key
         underfull_child->keys[0] = parent->keys[child_index -1];
         ++underfull_child->key_count;
 
-        // step 3: put left-sibling key in parent
-        parent->keys[child_index - 1] = left_sibling->keys[left_sibling->key_count - 1];
-        left_sibling->keys[left_sibling->key_count - 1] = T{};
+        // step 3: set parent's key to left_child's key
+        parent->keys[child_index - 1] = left_child->keys[left_child->key_count - 1];
+        left_child->keys[left_child->key_count - 1] = T{};
 
-        // step 4: move underfull_child keys right, put left-sibling last child in first underfull_child
-        if(!left_sibling->is_leaf()) {
+        // step 4: if left child has children, shift children
+        if(!left_child->is_leaf()) {
             // shift children right
             for (std::size_t i = underfull_child->key_count; i > 0; --i)
                 underfull_child->children[i] = underfull_child->children[i - 1];
 
-            // move sibling's rightmost child to underfull_child's front
-            underfull_child->children[0] = left_sibling->children[left_sibling->key_count];
-            left_sibling->children[left_sibling->key_count] = nullptr;
+            // set underfull_child's first child to left_child's rightmost child
+            underfull_child->children[0] = left_child->children[left_child->key_count];
+            left_child->children[left_child->key_count] = nullptr;
         }
-        // update key count after chilren moved
-        --left_sibling->key_count;
-    
+        // update key count after children moved
+        --left_child->key_count;
     }
 
     template <typename T, std::size_t ORDER>
@@ -379,34 +411,34 @@ namespace ds {
         //    c0    c1     c2      child indexes
         //endregion
 
-        //implement key rotation from right sibling
+        //implement key rotation from right child
         auto* underfull_child         = parent->children[child_index];
-        auto* right_sibling = parent->children[child_index + 1];
+        auto* right_child = parent->children[child_index + 1];
 
-        // step 1: put seperator key into underfull child
+        // step 1: set underfull_child's key to parent's key
         underfull_child->keys[underfull_child->key_count] = parent->keys[child_index];
         ++underfull_child->key_count;
 
-        // step 2: put sibling key in parent
-        parent->keys[child_index] = right_sibling->keys[0];
+        // step 2: set parent's key to right_child's key
+        parent->keys[child_index] = right_child->keys[0];
 
-        // step 3: shift right siblings keys left
-        for (std::size_t i = 0; i < right_sibling->key_count - 1; ++i)
-            right_sibling->keys[i] = right_sibling->keys[i + 1];
-        right_sibling->keys[right_sibling->key_count - 1] = T{};
+        // step 3: shift right_child's keys to the left
+        for (std::size_t i = 0; i < right_child->key_count - 1; ++i)
+            right_child->keys[i] = right_child->keys[i + 1];
+        right_child->keys[right_child->key_count - 1] = T{};
 
-        // step 3: if right sibling has children, shift children
-        if (!right_sibling->is_leaf()) {
-            // move sibling's leftmost child to child's new rightmost slot
-            underfull_child->children[underfull_child->key_count] = right_sibling->children[0];
+        // step 3: if right_child has children, shift children
+        if (!right_child->is_leaf()) {
+            // set underfull_child's rightmost child to right_child's leftmost child
+            underfull_child->children[underfull_child->key_count] = right_child->children[0];
 
-            for (std::size_t i = 0; i < right_sibling->key_count; ++i)
-                right_sibling->children[i] = right_sibling->children[i + 1];
-            right_sibling->children[right_sibling->key_count] = nullptr;
+            // shift right_child's children left
+            for (std::size_t i = 0; i < right_child->key_count; ++i)
+                right_child->children[i] = right_child->children[i + 1];
+            right_child->children[right_child->key_count] = nullptr;
         }
         // update key count after children moved
-        --right_sibling->key_count;
-
+        --right_child->key_count;
     }
 
     template <typename T, std::size_t ORDER>
@@ -422,7 +454,7 @@ namespace ds {
     void Btree<T, ORDER>::fix_underflow(Node<T, ORDER>* parent, std::size_t child_index) {
         auto* left_sibling  = child_index > 0 ? parent->children[child_index - 1] : nullptr;
         auto* right_sibling = child_index < parent->key_count ? parent->children[child_index + 1] : nullptr;
-        
+
         auto minimum_keys = (Node<T, ORDER>::MAX_KEYS + 1) / 2;  // matches is_underflow
         if (right_sibling && right_sibling->key_count > minimum_keys) {
             borrow_from_right(parent, child_index);
@@ -498,39 +530,6 @@ namespace ds {
             recursive_clear(child);
         }
         delete node;
-    }
-
-    template <typename T, std::size_t ORDER>
-    std::string Btree<T, ORDER>::to_string() const {
-        std::string result;
-        if (!root) return result;
-
-        std::queue<Node<T, ORDER>*> current_level, next_level;
-        current_level.push(root);
-
-        while (!current_level.empty()) {
-            while (!current_level.empty()) {
-                auto* node = current_level.front();
-                current_level.pop();
-
-                // print this node's keys
-                result += "[";
-                for (std::size_t i = 0; i < node->key_count; ++i) {
-                    if (i > 0) result += "|";
-                    result += std::to_string(node->keys[i]);
-                }
-                result += "] ";
-
-                // enqueue children for next level
-                for (std::size_t i = 0; i <= node->key_count; ++i) {
-                    if (node->children[i])
-                        next_level.push(node->children[i]);
-                }
-            }
-            result += "\n";
-            std::swap(current_level, next_level);
-        }
-        return result;
     }
 
     template <typename T, std::size_t ORDER>
