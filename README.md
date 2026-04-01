@@ -10,15 +10,6 @@ A generic B-tree implementation in C++, templated on both value type and tree or
 
 **`validate()` checks structural invariants** after any mutation: all leaves at the same depth, every non-root node meets minimum occupancy, and all keys are in sorted order within their bounds.
 
-## Complexity
-
-| Operation | Average | Worst |
-|-----------|---------|-------|
-| Search    | O(log n) | O(log n) |
-| Insert    | O(log n) | O(log n) |
-| Delete    | O(log n) | O(log n) |
-| Space     | O(n)     | O(n)     |
-
 ## Usage
 
 ```cpp
@@ -49,10 +40,16 @@ The `ORDER` template parameter must be >= 3. A `static_assert` enforces this at 
 ```sh
 ./build/arm64/btree/btree
 ```
+*or*
+```sh
+./build/x86_64/btree/btree
+```
 
 **Test:**
 ```sh
 ctest --test-dir build/arm64
 ```
-
-Replace `arm64` with `x86_64` on Intel.
+*or*
+```sh
+ctest --test-dir build/x86_64
+```
