@@ -11,7 +11,8 @@ project (${PROJECT} C CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)  # disables GNU extensions, use pure C++20
-# set(CMAKE_C_STANDARD 99)
+
+find_package(RapidJSON REQUIRED)
 
 # REPO_ROOT is passed in from the make_build script via -DREPO_ROOT=
 # Fall back to deriving it from CMAKE_SOURCE_DIR when run directly (e.g. CLion)

@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Clean script for btree project
-# This script removes make_build artifacts
-# Run from the repo root as: ./support/make_clean.sh
+# This script removes build artifacts
+# Run from the repo root as: ./support/make_clean
 
 echo "Cleaning 2-3tree project..."
 

@@ -8,9 +8,15 @@ file(GLOB_RECURSE HEADERS ${REPO_ROOT}/inc/*.hpp)
 add_executable(${CMAKE_PROJECT_NAME} ${SOURCES} ${HEADERS})
 
 # Include directories for the executable
-target_include_directories(${PROJECT}
+target_include_directories(${CMAKE_PROJECT_NAME}
     PRIVATE
         ${REPO_ROOT}/src
         ${REPO_ROOT}/inc
+)
+
+# Treat as system headers to suppress rapid json warnings
+target_include_directories(${CMAKE_PROJECT_NAME}
+    SYSTEM PRIVATE
+        ${RAPIDJSON_INCLUDE_DIRS}
 )
 

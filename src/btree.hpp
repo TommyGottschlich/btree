@@ -41,7 +41,7 @@ namespace ds {
         /// @param value The value to be inserted
         /// @param recursive If true, use the recursive insertion path; otherwise use the iterative path
         /// @return True if the value was successfully inserted, false if the value already exists
-        bool insert(const T& value, bool recursive = false);
+        bool insert(const T& value, bool recursive = true);
 
         /// @brief Remove a value from the tree, maintaining the properties of a B tree
         /// @param value The value to be removed
@@ -70,6 +70,18 @@ namespace ds {
         /// @brief Provide a string representation of the tree
         /// @return The string representation of the tree
         [[nodiscard]] std::string to_string() const;
+
+        /// @brief Callback invoked for each node visited during traversal.
+        /// @param id The unique identifier of the node.
+        /// @param keys The keys stored in the node, in sorted order.
+        /// @param child_ids The identifiers of the node's children, in left-to-right order.
+        /// @param is_leaf True if the node has no children; otherwise false.
+        using node_visitor =
+            std::function<void(int id, const std::vector<T>& keys, const std::vector<int>& child_ids, bool is_leaf)>;
+
+        /// @brief Visits all nodes in the tree using breadth-first search.
+        /// @param visitor Function called once for each visited node.
+        void bfs(node_visitor visitor) const;
 
     private:
         /// Root node of the tree

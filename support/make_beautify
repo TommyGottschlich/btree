@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # Formats all source files using clang-format
-# Run from anywhere as: ./support/make_beautify.sh
+# Run from the repo root as: ./support/make_beautify
 
 set -e
 
-REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+REPO_ROOT="$(pwd)"
 
 if ! command -v clang-format &>/dev/null; then
     echo "clang-format not found. Install with: brew install clang-format"

@@ -2,7 +2,7 @@
 
 # Build script for btree project
 # This script builds the project using CMake
-# Run from the repo root as: ./support/build.sh
+# Run from the repo root as: ./support/make_build
 
 set -e  # Exit on any error
 

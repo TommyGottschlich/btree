@@ -33,7 +33,7 @@ foreach(test_case ${TEST_SOURCES})
     # Create a unique executable for each test file
     add_executable(${test_name} ${test_case})
 
-    # Link the test executable with Boost
+    # Link the test executable with libraries
     target_link_libraries(${test_name}
         PRIVATE ${Boost_LIBRARIES}
     )
@@ -44,6 +44,7 @@ foreach(test_case ${TEST_SOURCES})
         PRIVATE ${REPO_ROOT}/inc
         PRIVATE ${REPO_ROOT}/utests
         PRIVATE ${Boost_INCLUDE_DIRS}
+        PRIVATE ${RAPIDJSON_INCLUDE_DIRS}
     )
 
     # Add each test executable to CTest

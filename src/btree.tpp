@@ -113,6 +113,31 @@ namespace ds {
         return result;
     }
 
+    template <typename T, std::size_t ORDER> void Btree<T, ORDER>::bfs(node_visitor visitor) const {
+        if (!root)
+            return;
+
+        int next_id = 0;
+        std::queue<std::pair<int, Node<T, ORDER>*>> queue;
+        queue.push({next_id++, root});
+
+        while (!queue.empty()) {
+            auto [id, node] = queue.front();
+            queue.pop();
+
+            std::vector<int> child_ids;
+            for (std::size_t i = 0; i <= node->key_count; ++i) {
+                if (node->children[i]) {
+                    int child_id = next_id++;
+                    child_ids.push_back(child_id);
+                    queue.push({child_id, node->children[i]});
+                }
+            }
+
+            visitor(id, {node->keys.begin(), node->keys.begin() + node->key_count}, child_ids, node->is_leaf());
+        }
+    }
+
     // region Private helper functions
     template <typename T, std::size_t ORDER>
     Node<T, ORDER>* Btree<T, ORDER>::search(Node<T, ORDER>* node, const T& value) const {
@@ -159,8 +184,7 @@ namespace ds {
         if (node->is_leaf()) {
             if (node->add_key(value))
                 current_size++; // increment size of tree when a new key is successfully inserted
-
-        } else { // case 2: if node is not a leaf
+        } else {                // case 2: if node is not a leaf
             // find child node index to insert down into
             auto index                    = node->child_index(value);
             auto [promoted_key, new_node] = recursive_insert(node->children[index], value);
@@ -171,7 +195,8 @@ namespace ds {
 
         // case 3: if overflow
         if (node->is_overflow()) {
-            return handle_overflow(node);
+            auto [promoted_key, new_right] = handle_overflow(node);
+            return {promoted_key, new_right};
         }
 
         return {value, nullptr}; // base
