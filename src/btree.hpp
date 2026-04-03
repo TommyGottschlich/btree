@@ -10,6 +10,8 @@
 
 #include <iostream>
 
+#include "event.hpp"
+#include "event_logger.hpp"
 #include "node.hpp"
 
 namespace ds {
@@ -31,6 +33,10 @@ namespace ds {
         /// Move semantics for ownership transfer
         Btree(Btree&&)            = default;
         Btree& operator=(Btree&&) = default;
+
+        void set_logger(EventLogger* event_logger) {
+            logger = event_logger;
+        }
 
         /// @brief Check whether a value exists in the tree
         /// @param value The value to search for
@@ -71,23 +77,24 @@ namespace ds {
         /// @return The string representation of the tree
         [[nodiscard]] std::string to_string() const;
 
-        /// @brief Callback invoked for each node visited during traversal.
-        /// @param id The unique identifier of the node.
-        /// @param keys The keys stored in the node, in sorted order.
-        /// @param child_ids The identifiers of the node's children, in left-to-right order.
-        /// @param is_leaf True if the node has no children; otherwise false.
-        using node_visitor =
-            std::function<void(int id, const std::vector<T>& keys, const std::vector<int>& child_ids, bool is_leaf)>;
-
-        /// @brief Visits all nodes in the tree using breadth-first search.
-        /// @param visitor Function called once for each visited node.
-        void bfs(node_visitor visitor) const;
+        /// @brief Captures the current tree state as a breadth-first traversal
+        /// @return TreeSnapshot containing all nodes, their id, keys, children, and is leaf status
+        [[nodiscard]] TreeSnapshot snapshot() const;
 
     private:
         /// Root node of the tree
         Node<T, ORDER>* root;
         /// Cached number of keys currently stored in the tree
         std::size_t current_size;
+        std::vector<int> path{};
+
+        EventLogger* logger;
+
+        void emit(Event e) {
+            if (!logger)
+                return;
+            logger->log(std::move(e), snapshot());
+        }
 
         /// @brief Recursive search function that traverses the tree to find a value
         /// @param node The current node being processed
@@ -100,15 +107,17 @@ namespace ds {
         /// @brief Recursive insert function that handles the logic of inserting a value into the tree
         /// @param node The current node being processed
         /// @param value The value to be inserted
+        /// @param path Sequence of child indices traversed from the root to the insertion point
         /// @return A pair containing the value and a pointer to the node where the value was inserted, or nullptr if
         /// the value already exists
-        std::pair<T, Node<T, ORDER>*> recursive_insert(Node<T, ORDER>* node, const T& value);
+        std::pair<T, Node<T, ORDER>*> recursive_insert(Node<T, ORDER>* node, const T& value, std::vector<int>& path);
 
         /// @brief Iterative insert function that handles the logic of inserting a value into the tree
         /// @param node The current node being processed
         /// @param value The value to be inserted
+        /// @param path Sequence of child indices traversed from the root to the insertion point
         /// @return True if successfully inserted into the tree, otherwise false
-        bool iterative_insert(Node<T, ORDER>* node, const T& value);
+        bool iterative_insert(Node<T, ORDER>* node, const T& value, std::vector<int>& path);
 
         // region Insert Function Helpers
         /// @brief Splits an overfull node and promotes the middle key, creating a new root if needed
@@ -184,10 +193,15 @@ namespace ds {
         /// @param node The node to validate
         /// @param depth The current depth of the node
         /// @param leaf_depth The depth of the first leaf found, used to check consistency
-        /// @param min The lower bound (exclusive) for all keys in this subtree, nullptr if unbounded
-        /// @param max The upper bound (exclusive) for all keys in this subtree, nullptr if unbounded
+        /// @param lower The lower bound (exclusive) for all keys in this subtree, nullptr if unbounded
+        /// @param upper The upper bound (exclusive) for all keys in this subtree, nullptr if unbounded
         /// @return True if the subtree rooted at node is valid, otherwise false
         bool validate_node(Node<T, ORDER>* node, int depth, int& leaf_depth, const T* lower, const T* upper) const;
+
+        /// @brief Converts the T value to a string
+        /// @param value The value to convert to a string
+        /// @return string representation of the value
+        std::string value_to_string(const T& value) const;
 
         // region Test Function helpers
 #ifdef TESTING

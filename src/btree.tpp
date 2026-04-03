@@ -10,11 +10,13 @@
 #include <deque>
 #include <functional>
 #include <queue>
+#include <sstream>
 
 namespace ds {
 
     /// Public functions implementation ///
-    template <typename T, std::size_t ORDER> Btree<T, ORDER>::Btree() : root{nullptr}, current_size{0} {
+    template <typename T, std::size_t ORDER>
+    Btree<T, ORDER>::Btree() : root{nullptr}, current_size{0}, logger{nullptr} {
     }
 
     template <typename T, std::size_t ORDER> Btree<T, ORDER>::~Btree() {
@@ -27,12 +29,16 @@ namespace ds {
 
     template <typename T, std::size_t ORDER> bool Btree<T, ORDER>::insert(const T& value, bool recursive) {
         auto old_size = current_size;
+        std::vector<int> path{0}; // root is always at index 0
 
         if (recursive)
-            (void)recursive_insert(root, value);
+            (void)recursive_insert(root, value, path);
         else
-            (void)iterative_insert(root, value);
+            (void)iterative_insert(root, value, path);
 
+        if (current_size > old_size)
+            emit(InsertEvent{value_to_string(value), path});
+        // else failure emit?
         return current_size > old_size;
     }
 
@@ -113,9 +119,11 @@ namespace ds {
         return result;
     }
 
-    template <typename T, std::size_t ORDER> void Btree<T, ORDER>::bfs(node_visitor visitor) const {
+    template <typename T, std::size_t ORDER> TreeSnapshot Btree<T, ORDER>::snapshot() const {
+        TreeSnapshot tree_snapshot;
+
         if (!root)
-            return;
+            return tree_snapshot;
 
         int next_id = 0;
         std::queue<std::pair<int, Node<T, ORDER>*>> queue;
@@ -134,8 +142,15 @@ namespace ds {
                 }
             }
 
-            visitor(id, {node->keys.begin(), node->keys.begin() + node->key_count}, child_ids, node->is_leaf());
+            // convert type T vector to string
+            std::vector<std::string> keys(node->key_count);
+            std::transform(node->keys.begin(), node->keys.begin() + node->key_count, keys.begin(),
+                           [this](T x) { return value_to_string(x); });
+
+            NodeData node_data{id, keys, child_ids, node->is_leaf()};
+            tree_snapshot.nodes.push_back(std::move(node_data));
         }
+        return tree_snapshot;
     }
 
     // region Private helper functions
@@ -172,7 +187,8 @@ namespace ds {
     }
 
     template <typename T, std::size_t ORDER>
-    std::pair<T, Node<T, ORDER>*> Btree<T, ORDER>::recursive_insert(Node<T, ORDER>* node, const T& value) {
+    std::pair<T, Node<T, ORDER>*> Btree<T, ORDER>::recursive_insert(Node<T, ORDER>* node, const T& value,
+                                                                    std::vector<int>& path) {
         // case 0: if root is null, create a root
         if (!node) {
             root = new Node<T, ORDER>(value, nullptr, nullptr);
@@ -182,12 +198,15 @@ namespace ds {
 
         // case 1: if node is a leaf
         if (node->is_leaf()) {
-            if (node->add_key(value))
+            if (node->add_key(value)) {
                 current_size++; // increment size of tree when a new key is successfully inserted
-        } else {                // case 2: if node is not a leaf
+            }
+        } else { // case 2: if node is not a leaf
             // find child node index to insert down into
-            auto index                    = node->child_index(value);
-            auto [promoted_key, new_node] = recursive_insert(node->children[index], value);
+            auto index = node->child_index(value);
+            path.push_back(index); // record path for event
+
+            auto [promoted_key, new_node] = recursive_insert(node->children[index], value, path);
 
             if (new_node)
                 absorb_promoted(node, promoted_key, new_node);
@@ -203,7 +222,7 @@ namespace ds {
     }
 
     template <typename T, std::size_t ORDER>
-    bool Btree<T, ORDER>::iterative_insert(Node<T, ORDER>* node, const T& value) {
+    bool Btree<T, ORDER>::iterative_insert(Node<T, ORDER>* node, const T& value, std::vector<int>& path) {
         // case 0: if root is null create root
         if (!node) {
             root = new Node<T, ORDER>(value, nullptr, nullptr);
@@ -216,7 +235,8 @@ namespace ds {
         while (!node->is_leaf()) {
             visited_stack.push_front(node);
             auto index = node->child_index(value);
-            node       = node->children[index];
+            path.push_back(index);
+            node = node->children[index];
         }
 
         // case 2: Node is now a leaf
@@ -640,5 +660,10 @@ namespace ds {
 
         return true;
     }
-    // endregion
+
+    template <typename T, std::size_t ORDER> std::string Btree<T, ORDER>::value_to_string(const T& value) const {
+        std::ostringstream oss;
+        oss << value;
+        return oss.str();
+    }
 } // namespace ds

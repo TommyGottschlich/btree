@@ -1,5 +1,13 @@
 # btree
 
+# TODO:
+ - [ ] Reorganize event.hpp 
+ - [ ] Add remaining events for insert
+ - [ ] Add remaining events for delete
+ - [ ] Add remaining events for search
+
+
+
 A generic B-tree implementation in C++, templated on both value type and tree order. Supports insert, delete, and search while maintaining all B-tree structural invariants.
 
 ## Design Notes

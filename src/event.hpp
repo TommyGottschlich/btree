@@ -1,0 +1,63 @@
+/**
+ * @file event.hpp
+ * @author Tommy G
+ * @brief Header of Event objects
+ * @date 2026-04-2
+ */
+#ifndef EVENT_HPP
+#define EVENT_HPP
+
+#include <string>
+#include <variant>
+#include <vector>
+
+namespace ds {
+
+    struct NodeData {
+        int id{};
+        std::vector<std::string> keys{};
+        std::vector<int> child_ids{};
+        bool is_leaf{};
+    };
+
+    struct TreeSnapshot {
+        int root_id{0};
+        std::vector<NodeData> nodes{};
+    };
+
+    enum class EventType {
+        // Insert events
+        INSERT_SUCCESS,   ///< Value was successfully inserted
+        INSERT_DUPLICATE, ///< Value already exists; insert skipped
+        INSERT_SPLIT,     ///< Node was split during insertion (overflow handled)
+        INSERT_NEW_ROOT,  ///< A new root was created as a result of a split
+        // Remove events
+        REMOVE_SUCCESS,      ///< Value was successfully removed
+        REMOVE_NOT_FOUND,    ///< Value was not present in the tree
+        REMOVE_BORROW_LEFT,  ///< Underflow resolved by borrowing from left sibling
+        REMOVE_BORROW_RIGHT, ///< Underflow resolved by borrowing from right sibling
+        REMOVE_MERGE,        ///< Underflow resolved by merging with a sibling
+        REMOVE_SHRINK,       ///< Tree height decreased after root became empty
+        // Search events
+        SEARCH_FOUND,     ///< Value was found during search
+        SEARCH_NOT_FOUND, ///< Value was not found during search
+    };
+
+    struct EventBase {
+        EventType type;
+        std::string snapshot;
+    };
+
+    struct InsertEvent : EventBase {
+        std::string key;
+        std::vector<int> path;
+
+        InsertEvent(std::string key, std::vector<int> path)
+            : EventBase{EventType::INSERT_SUCCESS, {}}, key{std::move(key)}, path{std::move(path)} {
+        }
+    };
+
+    using Event = std::variant<EventBase, InsertEvent>;
+
+} // namespace ds
+#endif // EVENT_HPP

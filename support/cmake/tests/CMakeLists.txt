@@ -3,6 +3,9 @@
 # Collect all test files from the utests directory
 file(GLOB_RECURSE TEST_SOURCES ${REPO_ROOT}/utests/*.cpp)
 file(GLOB_RECURSE TEST_HEADERS ${REPO_ROOT}/utests/*.hpp)
+# Include additional source but exclude main
+file(GLOB_RECURSE SOURCES ${REPO_ROOT}/src/*.cpp)
+list(FILTER SOURCES EXCLUDE REGEX ".*main\\.cpp$")
 
 # Setup Boost unit testing
 set(Boost_USE_STATIC_LIBS OFF) 
@@ -31,7 +34,7 @@ foreach(test_case ${TEST_SOURCES})
     set(test_name "utst_${test_name}")
 
     # Create a unique executable for each test file
-    add_executable(${test_name} ${test_case})
+    add_executable(${test_name} ${test_case} ${SOURCES})
 
     # Link the test executable with libraries
     target_link_libraries(${test_name}
