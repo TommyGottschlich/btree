@@ -12,7 +12,9 @@
 #include <string>
 #include <vector>
 
+#include "btree_snapshot.hpp"
 #include "event.hpp"
+#include "node.hpp"
 
 namespace ds {
 
@@ -23,7 +25,7 @@ namespace ds {
         /// @param tree_snapshot The B tree snapshot from which the event arrived
         void log(Event event, const TreeSnapshot& tree_snapshot);
 
-        void print_events() const;
+        void print_events();
 
     private:
         std::vector<Event> events;
@@ -32,6 +34,10 @@ namespace ds {
         /// @param tree_snapshot The tree to serialize into a human-readable string representation.
         /// @return A textual snapshot of the tree's current structure and contents in json
         static std::string serialize(const TreeSnapshot& tree_snapshot);
+
+        static std::string serialize(const InsertEvent& insert_event);
+
+        static std::string serialize(const SplitEvent& split_event);
     };
 
 } // namespace ds

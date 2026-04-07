@@ -2,28 +2,17 @@
  * @file event.hpp
  * @author Tommy G
  * @brief Header of Event objects
- * @date 2026-04-2
+ * @date 2026-04-02
  */
 #ifndef EVENT_HPP
 #define EVENT_HPP
 
 #include <string>
+#include <utility>
 #include <variant>
 #include <vector>
 
 namespace ds {
-
-    struct NodeData {
-        int id{};
-        std::vector<std::string> keys{};
-        std::vector<int> child_ids{};
-        bool is_leaf{};
-    };
-
-    struct TreeSnapshot {
-        int root_id{0};
-        std::vector<NodeData> nodes{};
-    };
 
     enum class EventType {
         // Insert events
@@ -43,21 +32,37 @@ namespace ds {
         SEARCH_NOT_FOUND, ///< Value was not found during search
     };
 
+    /// @brief Base for all events; holds the event type and a JSON snapshot of the tree after the event
     struct EventBase {
         EventType type;
         std::string snapshot;
     };
 
+    /// @brief Emitted when a value is successfully inserted into the tree
     struct InsertEvent : EventBase {
-        std::string key;
-        std::vector<int> path;
+        std::string key;       ///< The inserted key
+        std::vector<int> path; ///< Child indices traversed from root to insertion point
 
         InsertEvent(std::string key, std::vector<int> path)
             : EventBase{EventType::INSERT_SUCCESS, {}}, key{std::move(key)}, path{std::move(path)} {
         }
     };
 
-    using Event = std::variant<EventBase, InsertEvent>;
+    /// @brief Emitted when a node split occurs during insertion
+    struct SplitEvent : EventBase {
+        std::string promoted;  ///< Key promoted to the parent
+        std::string left;      ///< First key of the left node after split
+        std::string right;     ///< First key of the right node after split
+        std::vector<int> path; ///< Child indices traversed from root to insertion point
+
+        SplitEvent(std::string promoted, std::string left, std::string right, std::vector<int> path)
+            : EventBase{EventType::INSERT_SPLIT, {}}, promoted{std::move(promoted)}, left{std::move(left)},
+              right{std::move(right)}, path{path} {
+        }
+    };
+
+    using Event = std::variant<EventBase, InsertEvent, SplitEvent>;
 
 } // namespace ds
+
 #endif // EVENT_HPP

@@ -10,7 +10,7 @@
 
 #include <iostream>
 
-#include "event.hpp"
+#include "btree_snapshot.hpp"
 #include "event_logger.hpp"
 #include "node.hpp"
 
@@ -86,7 +86,7 @@ namespace ds {
         Node<T, ORDER>* root;
         /// Cached number of keys currently stored in the tree
         std::size_t current_size;
-        std::vector<int> path{};
+        std::vector<int> insert_path{};
 
         EventLogger* logger;
 
@@ -107,23 +107,22 @@ namespace ds {
         /// @brief Recursive insert function that handles the logic of inserting a value into the tree
         /// @param node The current node being processed
         /// @param value The value to be inserted
-        /// @param path Sequence of child indices traversed from the root to the insertion point
         /// @return A pair containing the value and a pointer to the node where the value was inserted, or nullptr if
         /// the value already exists
-        std::pair<T, Node<T, ORDER>*> recursive_insert(Node<T, ORDER>* node, const T& value, std::vector<int>& path);
+        std::pair<T, Node<T, ORDER>*> recursive_insert(Node<T, ORDER>* node, const T& value);
 
         /// @brief Iterative insert function that handles the logic of inserting a value into the tree
         /// @param node The current node being processed
         /// @param value The value to be inserted
-        /// @param path Sequence of child indices traversed from the root to the insertion point
         /// @return True if successfully inserted into the tree, otherwise false
-        bool iterative_insert(Node<T, ORDER>* node, const T& value, std::vector<int>& path);
+        bool iterative_insert(Node<T, ORDER>* node, const T& value);
 
         // region Insert Function Helpers
         /// @brief Splits an overfull node and promotes the middle key, creating a new root if needed
         /// @param overflow_node The overfull node to split
+        /// @param path Sequence of child indices traversed from the root to the insertion point
         /// @return A pair of the promoted key and the new right node created by the split
-        std::pair<T, Node<T, ORDER>*> handle_overflow(Node<T, ORDER>* overflow_node);
+        std::pair<T, Node<T, ORDER>*> handle_overflow(Node<T, ORDER>* overflow_node, std::vector<int>& path);
 
         /// @brief Inserts a promoted key and its new right child into a parent node after a split
         /// @param parent The parent node receiving the promoted key

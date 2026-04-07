@@ -15,6 +15,8 @@ int main() {
     //};
     for (int value : values) {
         tree.insert(value);
+        logger.print_events();
+        std::cout << std::endl;
     }
     std::cout << "Tree " << (tree.validate() ? "valid" : "not valid") << std::endl;
     tree.print();

@@ -29,16 +29,18 @@ namespace ds {
 
     template <typename T, std::size_t ORDER> bool Btree<T, ORDER>::insert(const T& value, bool recursive) {
         auto old_size = current_size;
-        std::vector<int> path{0}; // root is always at index 0
+        insert_path.push_back(0); // root is always at index 0
 
         if (recursive)
-            (void)recursive_insert(root, value, path);
+            (void)recursive_insert(root, value);
         else
-            (void)iterative_insert(root, value, path);
+            (void)iterative_insert(root, value);
 
         if (current_size > old_size)
-            emit(InsertEvent{value_to_string(value), path});
-        // else failure emit?
+            emit(InsertEvent{value_to_string(value), insert_path});
+
+        insert_path.clear(); // reset path for next insert
+
         return current_size > old_size;
     }
 
@@ -187,8 +189,9 @@ namespace ds {
     }
 
     template <typename T, std::size_t ORDER>
-    std::pair<T, Node<T, ORDER>*> Btree<T, ORDER>::recursive_insert(Node<T, ORDER>* node, const T& value,
-                                                                    std::vector<int>& path) {
+    std::pair<T, Node<T, ORDER>*> Btree<T, ORDER>::recursive_insert(Node<T, ORDER>* node, const T& value) {
+        const auto depth = insert_path.size(); // snapshot before recursing deeper
+
         // case 0: if root is null, create a root
         if (!node) {
             root = new Node<T, ORDER>(value, nullptr, nullptr);
@@ -204,9 +207,8 @@ namespace ds {
         } else { // case 2: if node is not a leaf
             // find child node index to insert down into
             auto index = node->child_index(value);
-            path.push_back(index); // record path for event
-
-            auto [promoted_key, new_node] = recursive_insert(node->children[index], value, path);
+            insert_path.push_back(index); // record path for event
+            auto [promoted_key, new_node] = recursive_insert(node->children[index], value);
 
             if (new_node)
                 absorb_promoted(node, promoted_key, new_node);
@@ -214,7 +216,9 @@ namespace ds {
 
         // case 3: if overflow
         if (node->is_overflow()) {
-            auto [promoted_key, new_right] = handle_overflow(node);
+            // record path of split
+            auto split_path                = std::vector<int>{insert_path.begin(), insert_path.begin() + depth};
+            auto [promoted_key, new_right] = handle_overflow(node, split_path);
             return {promoted_key, new_right};
         }
 
@@ -222,7 +226,7 @@ namespace ds {
     }
 
     template <typename T, std::size_t ORDER>
-    bool Btree<T, ORDER>::iterative_insert(Node<T, ORDER>* node, const T& value, std::vector<int>& path) {
+    bool Btree<T, ORDER>::iterative_insert(Node<T, ORDER>* node, const T& value) {
         // case 0: if root is null create root
         if (!node) {
             root = new Node<T, ORDER>(value, nullptr, nullptr);
@@ -235,7 +239,7 @@ namespace ds {
         while (!node->is_leaf()) {
             visited_stack.push_front(node);
             auto index = node->child_index(value);
-            path.push_back(index);
+            insert_path.push_back(index);
             node = node->children[index];
         }
 
@@ -246,10 +250,12 @@ namespace ds {
         current_size++;
 
         // case 3: if overflow
+        auto split_path = insert_path; // record path of split
         while (node->is_overflow()) {
-            auto [promoted, new_right] = handle_overflow(node);
+            auto [promoted, new_right] = handle_overflow(node, split_path);
             if (visited_stack.empty())
                 break;
+            split_path.pop_back();
 
             auto* parent = visited_stack.front();
             visited_stack.pop_front();
@@ -261,15 +267,19 @@ namespace ds {
     }
 
     template <typename T, std::size_t ORDER>
-    std::pair<T, Node<T, ORDER>*> Btree<T, ORDER>::handle_overflow(Node<T, ORDER>* node) {
+    std::pair<T, Node<T, ORDER>*> Btree<T, ORDER>::handle_overflow(Node<T, ORDER>* node, std::vector<int>& path) {
         // node is now overfull, split it and promote the middle key
         auto [promoted_key, new_right_node] = node->split();
 
         // if root split, we need to create a new root
         if (node == root) {
-            root = new Node<T, ORDER>(promoted_key, node, new_right_node);
-            return {promoted_key, root};
+            root           = new Node<T, ORDER>(promoted_key, node, new_right_node);
+            new_right_node = root;
+            // return {promoted_key, root};
         }
+
+        emit(SplitEvent{value_to_string(promoted_key), value_to_string(node->keys[0]),
+                        value_to_string(new_right_node->keys[0]), path});
 
         // return the promoted key and new right node to be inserted into the parent
         return {promoted_key, new_right_node};

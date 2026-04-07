@@ -19,4 +19,3 @@ target_include_directories(${CMAKE_PROJECT_NAME}
     SYSTEM PRIVATE
         ${RAPIDJSON_INCLUDE_DIRS}
 )
-
