@@ -1,13 +1,5 @@
 # btree
 
-# TODO:
- - [ ] Reorganize event.hpp 
- - [ ] Add remaining events for insert
- - [ ] Add remaining events for delete
- - [ ] Add remaining events for search
-
-
-
 A generic B-tree implementation in C++, templated on both value type and tree order. Supports insert, delete, and search while maintaining all B-tree structural invariants.
 
 ## Design Notes
@@ -61,3 +53,20 @@ ctest --test-dir build/arm64
 ```sh
 ctest --test-dir build/x86_64
 ```
+
+
+# TODO:
+- [ ] Front end development
+    - [ ] Parse JSON Events for Insert
+        - [ ] Handle Split
+        - [ ] Handle Insert
+        - [ ] Collect Tree nodes from snapshot JSON
+        - [ ] Collect Tree edges from snapshot JSON
+        - [ ] Create Tree from snapshot JSON
+        - [ ] Validate Tree from snapshot JSON
+    - [ ] Parse JSON Events for Search
+        - [ ] Handle Search
+        - [ ] Collect Tree nodes from snapshot JSON
+    - [ ] Parse JSON Events for Delete
+        - [ ] Handle Delete
+        - [ ] TODO: build out cases for delete
