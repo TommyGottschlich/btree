@@ -86,14 +86,17 @@ namespace ds {
         Node<T, ORDER>* root;
         /// Cached number of keys currently stored in the tree
         std::size_t current_size;
+        /// Cached path sequence of child indices traversed to insertion node
         std::vector<int> insert_path{};
+        /// Cached insertion key value
+        std::string insert_key{};
 
         EventLogger* logger;
 
-        void emit(Event e) {
+        void emit(Event e, const TreeSnapshot& snapshot) {
             if (!logger)
                 return;
-            logger->log(std::move(e), snapshot());
+            logger->log(std::move(e), snapshot);
         }
 
         /// @brief Recursive search function that traverses the tree to find a value

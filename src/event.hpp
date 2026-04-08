@@ -19,7 +19,6 @@ namespace ds {
         INSERT_SUCCESS,   ///< Value was successfully inserted
         INSERT_DUPLICATE, ///< Value already exists; insert skipped
         INSERT_SPLIT,     ///< Node was split during insertion (overflow handled)
-        INSERT_NEW_ROOT,  ///< A new root was created as a result of a split
         // Remove events
         REMOVE_SUCCESS,      ///< Value was successfully removed
         REMOVE_NOT_FOUND,    ///< Value was not present in the tree
@@ -50,14 +49,15 @@ namespace ds {
 
     /// @brief Emitted when a node split occurs during insertion
     struct SplitEvent : EventBase {
+        std::string key;       ///< The key being inserted that triggered the split
         std::string promoted;  ///< Key promoted to the parent
         std::string left;      ///< First key of the left node after split
         std::string right;     ///< First key of the right node after split
         std::vector<int> path; ///< Child indices traversed from root to insertion point
 
-        SplitEvent(std::string promoted, std::string left, std::string right, std::vector<int> path)
-            : EventBase{EventType::INSERT_SPLIT, {}}, promoted{std::move(promoted)}, left{std::move(left)},
-              right{std::move(right)}, path{path} {
+        SplitEvent(std::string key, std::string promoted, std::string left, std::string right, std::vector<int> path)
+            : EventBase{EventType::INSERT_SPLIT, {}}, key{std::move(key)}, promoted{std::move(promoted)},
+              left{std::move(left)}, right{std::move(right)}, path{path} {
         }
     };
 

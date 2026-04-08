@@ -29,7 +29,9 @@ namespace ds {
 
     template <typename T, std::size_t ORDER> bool Btree<T, ORDER>::insert(const T& value, bool recursive) {
         auto old_size = current_size;
-        insert_path.push_back(0); // root is always at index 0
+        // collect data for events
+        insert_path.push_back(0);
+        insert_key = value_to_string(value);
 
         if (recursive)
             (void)recursive_insert(root, value);
@@ -37,7 +39,7 @@ namespace ds {
             (void)iterative_insert(root, value);
 
         if (current_size > old_size)
-            emit(InsertEvent{value_to_string(value), insert_path});
+            emit(InsertEvent{insert_key, insert_path}, snapshot());
 
         insert_path.clear(); // reset path for next insert
 
@@ -268,21 +270,20 @@ namespace ds {
 
     template <typename T, std::size_t ORDER>
     std::pair<T, Node<T, ORDER>*> Btree<T, ORDER>::handle_overflow(Node<T, ORDER>* node, std::vector<int>& path) {
-        // node is now overfull, split it and promote the middle key
+        // capture the overfull tree state before splitting
+        auto pre_split_snapshot = snapshot();
+        const bool root_split   = (node == root);
+
         auto [promoted_key, new_right_node] = node->split();
 
-        // if root split, we need to create a new root
-        if (node == root) {
-            root           = new Node<T, ORDER>(promoted_key, node, new_right_node);
-            new_right_node = root;
-            // return {promoted_key, root};
-        }
+        emit(SplitEvent{insert_key, value_to_string(promoted_key), value_to_string(node->keys[0]),
+                        value_to_string(new_right_node->keys[0]), path},
+             pre_split_snapshot);
 
-        emit(SplitEvent{value_to_string(promoted_key), value_to_string(node->keys[0]),
-                        value_to_string(new_right_node->keys[0]), path});
+        if (root_split)
+            root = new Node<T, ORDER>(promoted_key, node, new_right_node);
 
-        // return the promoted key and new right node to be inserted into the parent
-        return {promoted_key, new_right_node};
+        return {promoted_key, root_split ? root : new_right_node};
     }
 
     template <typename T, std::size_t ORDER>

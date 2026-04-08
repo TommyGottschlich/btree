@@ -127,6 +127,7 @@ namespace ds {
         auto& alloc = doc.GetAllocator();
 
         doc.AddMember(rapidjson::StringRef(EVENT_TYPE), rapidjson::StringRef(SPLIT_EVENT_TYPE), alloc);
+        doc.AddMember(rapidjson::StringRef(KEY), rapidjson::Value(split_event.key.c_str(), alloc), alloc);
         doc.AddMember(rapidjson::StringRef(PROMOTED), rapidjson::Value(split_event.promoted.c_str(), alloc), alloc);
         doc.AddMember(rapidjson::StringRef(LEFT), rapidjson::Value(split_event.left.c_str(), alloc), alloc);
         doc.AddMember(rapidjson::StringRef(RIGHT), rapidjson::Value(split_event.right.c_str(), alloc), alloc);
@@ -135,6 +136,10 @@ namespace ds {
         for (int index : split_event.path)
             path.PushBack(index, alloc);
         doc.AddMember(rapidjson::StringRef(PATH), path.Move(), alloc);
+
+        rapidjson::Document snapshot;
+        snapshot.Parse(split_event.snapshot.c_str());
+        doc.AddMember(rapidjson::StringRef(SNAPSHOT), snapshot, alloc);
 
         rapidjson::StringBuffer buf;
         rapidjson::Writer writer(buf);
